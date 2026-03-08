@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "JobHunt France",
+  "version": "1.0.0",
+  "description": "Save jobs from LinkedIn & Welcome to the Jungle to your JobHunt France dashboard",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "https://www.linkedin.com/*",
+    "https://www.welcometothejungle.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/jobs/*",
+        "https://www.welcometothejungle.com/*/jobs/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

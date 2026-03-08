@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 320px;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #f9f7f4;
+      color: #2a2017;
+    }
+    .header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #e8e2da;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header span { font-size: 18px; }
+    .header h1 { font-size: 14px; font-weight: 600; }
+    .content { padding: 20px; }
+    .logged-in { text-align: center; }
+    .logged-in .email { font-size: 12px; color: #8a8078; margin-bottom: 12px; }
+    .logged-in .status {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #e8f5e9; color: #2e7d32; font-size: 12px;
+      padding: 6px 12px; border-radius: 8px; margin-bottom: 16px;
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #4caf50; }
+    input {
+      width: 100%; padding: 10px 14px; border: 1px solid #e8e2da;
+      border-radius: 10px; font-size: 13px; background: #fff;
+      margin-bottom: 8px; outline: none;
+    }
+    input:focus { border-color: #c47a3a; }
+    button {
+      width: 100%; padding: 10px; border: none; border-radius: 10px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.9; }
+    .btn-primary { background: #c47a3a; color: #fff; }
+    .btn-outline {
+      background: transparent; border: 1px solid #e8e2da;
+      color: #2a2017; margin-top: 8px;
+    }
+    .error { color: #d32f2f; font-size: 12px; margin-bottom: 8px; }
+    .hint { font-size: 11px; color: #8a8078; margin-top: 12px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span>🇫🇷</span>
+    <h1>JobHunt France</h1>
+  </div>
+  <div class="content" id="content"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
