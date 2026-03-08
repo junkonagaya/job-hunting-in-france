@@ -242,15 +242,31 @@ Analyze the match thoroughly and return the score, analysis, missing keywords, s
     const result = JSON.parse(toolCall.function.arguments);
     const score = Math.max(0, Math.min(100, result.relevance_score));
 
-    // Update the job with score and detected french level
+    // Store analysis as JSON in notes for retrieval
+    const analysisJson = JSON.stringify({
+      skills_score: result.skills_score,
+      french_score: result.french_score,
+      role_score: result.role_score,
+      overall_score: result.overall_score,
+      skills_match: result.skills_match,
+      french_match: result.french_match,
+      summary: result.summary,
+      missing_keywords: result.missing_keywords,
+      strengths: result.strengths,
+      resume_suggestions: result.resume_suggestions,
+    });
+
+    const userNotes = job.notes?.replace(/\n?--- AI Analysis ---\n[\s\S]*$/, "").trim() || "";
+    const fullNotes = userNotes
+      ? `${userNotes}\n\n--- AI Analysis ---\n${analysisJson}`
+      : `--- AI Analysis ---\n${analysisJson}`;
+
     const { error: updateError } = await supabase
       .from("saved_jobs")
       .update({
         relevance_score: score,
         french_level_required: result.french_level_required,
-        notes: job.notes
-          ? `${job.notes}\n\n--- AI Analysis ---\n${result.summary}\n\nSkills: ${result.skills_match}\nFrench: ${result.french_match}`
-          : `--- AI Analysis ---\n${result.summary}\n\nSkills: ${result.skills_match}\nFrench: ${result.french_match}`,
+        notes: fullNotes,
       })
       .eq("id", job_id);
 
@@ -265,10 +281,17 @@ Analyze the match thoroughly and return the score, analysis, missing keywords, s
     return new Response(JSON.stringify({
       success: true,
       relevance_score: score,
+      skills_score: result.skills_score,
+      french_score: result.french_score,
+      role_score: result.role_score,
+      overall_score: result.overall_score,
       french_level_required: result.french_level_required,
       skills_match: result.skills_match,
       french_match: result.french_match,
       summary: result.summary,
+      missing_keywords: result.missing_keywords,
+      strengths: result.strengths,
+      resume_suggestions: result.resume_suggestions,
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
