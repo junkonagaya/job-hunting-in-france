@@ -14,7 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          cv_text: string | null
+          french_level: string | null
+          full_name: string | null
+          id: string
+          skills_summary: string | null
+          target_job_title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cv_text?: string | null
+          french_level?: string | null
+          full_name?: string | null
+          id?: string
+          skills_summary?: string | null
+          target_job_title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cv_text?: string | null
+          french_level?: string | null
+          full_name?: string | null
+          id?: string
+          skills_summary?: string | null
+          target_job_title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_jobs: {
+        Row: {
+          company_name: string
+          created_at: string
+          date_applied: string | null
+          date_posted: string | null
+          date_saved: string
+          french_level_required: string | null
+          id: string
+          job_description: string | null
+          job_title: string
+          location: string | null
+          notes: string | null
+          relevance_score: number | null
+          source: string | null
+          source_url: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          date_applied?: string | null
+          date_posted?: string | null
+          date_saved?: string
+          french_level_required?: string | null
+          id?: string
+          job_description?: string | null
+          job_title: string
+          location?: string | null
+          notes?: string | null
+          relevance_score?: number | null
+          source?: string | null
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          date_applied?: string | null
+          date_posted?: string | null
+          date_saved?: string
+          french_level_required?: string | null
+          id?: string
+          job_description?: string | null
+          job_title?: string
+          location?: string | null
+          notes?: string | null
+          relevance_score?: number | null
+          source?: string | null
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
