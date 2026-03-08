@@ -51,7 +51,7 @@ const Auth = () => {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/15 mb-5">
             <span className="text-xl">🇫🇷</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight font-['Inter']">Get a Dream Job Smart</h1>
+          <h1 className="text-2xl font-semibold tracking-tight font-['Lora']">get a dream job smart</h1>
           <p className="text-muted-foreground text-sm mt-2">
             {isLogin ? "Welcome back" : "Create your account"}
           </p>
