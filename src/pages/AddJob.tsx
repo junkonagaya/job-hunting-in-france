@@ -10,7 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Link as LinkIcon, Loader2 } from "lucide-react";
+import { Link as LinkIcon, Loader2, Sparkles } from "lucide-react";
 
 export default function AddJob() {
   const { user } = useAuth();
@@ -30,14 +30,36 @@ export default function AddJob() {
     if (!user) return;
     setLoading(true);
     try {
-      const { error } = await supabase.from("saved_jobs").insert({
+      const { data, error } = await supabase.from("saved_jobs").insert({
         user_id: user.id, job_title: form.job_title, company_name: form.company_name,
         source: form.source || null, source_url: form.source_url || null,
         location: form.location || null, job_description: form.job_description || null,
         date_posted: form.date_posted || null, notes: form.notes || null,
-      });
+      }).select().single();
       if (error) throw error;
+
       toast({ title: "Job saved!", description: `${form.job_title} at ${form.company_name}` });
+
+      // Auto-score if there's a job description
+      if (data && form.job_description) {
+        toast({ title: "Scoring relevance...", description: "AI is analyzing the match" });
+        try {
+          const { data: scoreData, error: scoreError } = await supabase.functions.invoke("score-job", {
+            body: { job_id: data.id },
+          });
+          if (scoreError || scoreData?.error) {
+            console.warn("Auto-score failed:", scoreError?.message || scoreData?.error);
+          } else {
+            toast({
+              title: `Relevance: ${scoreData.relevance_score}%`,
+              description: scoreData.summary,
+            });
+          }
+        } catch (e) {
+          console.warn("Auto-score error:", e);
+        }
+      }
+
       navigate("/jobs");
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -109,9 +131,13 @@ export default function AddJob() {
 
         <div className="rounded-xl border border-border bg-card p-6 space-y-5">
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Job Description</Label>
+            <div className="flex items-center gap-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Job Description</Label>
+              <Sparkles className="w-3 h-3 text-primary" />
+              <span className="text-[10px] text-primary font-medium">AI scored</span>
+            </div>
             <Textarea value={form.job_description} onChange={(e) => update("job_description", e.target.value)}
-              placeholder="Paste the job description here for AI analysis..."
+              placeholder="Paste the job description here — AI will automatically score relevance when you save..."
               rows={6} className="rounded-lg bg-input border-border text-sm resize-none" />
           </div>
           <div className="space-y-1.5">

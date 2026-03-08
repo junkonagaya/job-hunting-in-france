@@ -10,7 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2 } from "lucide-react";
+import { Save, Loader2, Upload, FileText } from "lucide-react";
 
 type Profile = Tables<"profiles">;
 
@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [parsing, setParsing] = useState(false);
   const [profile, setProfile] = useState<Partial<Profile>>({
     full_name: "", skills_summary: "", cv_text: "",
     target_job_title: "", french_level: "none",
@@ -46,6 +47,28 @@ export default function ProfilePage() {
     } finally { setSaving(false); }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Accept .txt, .pdf (text extraction), .doc, .docx
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 5MB", variant: "destructive" });
+      return;
+    }
+
+    setParsing(true);
+    try {
+      const text = await file.text();
+      update("cv_text", text);
+      toast({ title: "Resume loaded", description: "Text extracted from file. Review and save." });
+    } catch {
+      toast({ title: "Error reading file", description: "Please paste your resume text manually.", variant: "destructive" });
+    } finally {
+      setParsing(false);
+    }
+  };
+
   const update = (field: string, value: string) => setProfile((p) => ({ ...p, [field]: value }));
 
   if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
@@ -54,7 +77,7 @@ export default function ProfilePage() {
     <div className="max-w-xl space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
-        <p className="text-muted-foreground text-sm mt-1">Your experience for AI matching</p>
+        <p className="text-muted-foreground text-sm mt-1">Your experience for AI relevance scoring</p>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-6 space-y-5">
@@ -93,9 +116,35 @@ export default function ProfilePage() {
 
       <div className="rounded-xl border border-border bg-card p-6 space-y-5">
         <div>
-          <h2 className="text-sm font-medium mb-1">Skills & Experience</h2>
-          <p className="text-xs text-muted-foreground">Used by AI to calculate relevance scores</p>
+          <h2 className="text-sm font-medium mb-1">Resume & Skills</h2>
+          <p className="text-xs text-muted-foreground">Used by AI to score job relevance. Upload your resume or paste the text.</p>
         </div>
+
+        {/* Resume upload */}
+        <div className="space-y-2">
+          <Label className="text-xs font-medium text-muted-foreground">Upload Resume</Label>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-input text-sm cursor-pointer hover:bg-accent/50 transition-colors">
+              {parsing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 text-muted-foreground" />}
+              <span className="text-muted-foreground">{parsing ? "Reading..." : "Choose file"}</span>
+              <input
+                type="file"
+                accept=".txt,.md,.text"
+                onChange={handleFileUpload}
+                className="hidden"
+                disabled={parsing}
+              />
+            </label>
+            {profile.cv_text && (
+              <span className="flex items-center gap-1 text-xs text-success">
+                <FileText className="w-3.5 h-3.5" />
+                Resume loaded
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-muted-foreground/60">Supports .txt files. For PDF/DOCX, paste the text below.</p>
+        </div>
+
         <div className="space-y-1.5">
           <Label className="text-xs font-medium text-muted-foreground">Skills Summary</Label>
           <Textarea value={profile.skills_summary || ""} onChange={(e) => update("skills_summary", e.target.value)}
@@ -105,7 +154,7 @@ export default function ProfilePage() {
         <div className="space-y-1.5">
           <Label className="text-xs font-medium text-muted-foreground">CV / Resume Text</Label>
           <Textarea value={profile.cv_text || ""} onChange={(e) => update("cv_text", e.target.value)}
-            placeholder="Paste your CV text here for better AI matching..." rows={8}
+            placeholder="Paste your CV text here for AI matching..." rows={8}
             className="rounded-lg bg-input border-border text-sm resize-none" />
         </div>
       </div>
