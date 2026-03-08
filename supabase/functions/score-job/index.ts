@@ -98,7 +98,12 @@ Scoring criteria:
 - Role relevance (0-20 points): How well the candidate's target role and career trajectory match
 - Overall fit (0-20 points): Location preferences, seniority level, industry alignment
 
-The total score should be 0-100.`;
+The total score should be 0-100.
+
+Also provide:
+- A list of keywords/skills from the job description that are MISSING from the candidate's resume
+- Specific, actionable suggestions to improve the resume for this particular job
+- Strengths the candidate already has that match the job`;
 
     const userPrompt = `## Candidate Profile
 - Name: ${profile.full_name || "Not provided"}
@@ -116,7 +121,7 @@ ${profile.cv_text || "Not provided"}
 - Description:
 ${job.job_description}
 
-Analyze the match and return the score and analysis.`;
+Analyze the match thoroughly and return the score, analysis, missing keywords, strengths, and resume improvement suggestions.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
