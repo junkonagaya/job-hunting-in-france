@@ -148,6 +148,22 @@ Analyze the match thoroughly and return the score, analysis, missing keywords, s
                     type: "integer",
                     description: "Overall relevance score from 0-100",
                   },
+                  skills_score: {
+                    type: "integer",
+                    description: "Skills & experience match score from 0-40",
+                  },
+                  french_score: {
+                    type: "integer",
+                    description: "French language fit score from 0-20",
+                  },
+                  role_score: {
+                    type: "integer",
+                    description: "Role relevance score from 0-20",
+                  },
+                  overall_score: {
+                    type: "integer",
+                    description: "Overall fit score from 0-20",
+                  },
                   french_level_required: {
                     type: "string",
                     enum: ["none", "A1", "A2", "B1", "B2", "C1", "C2", "native", "unknown"],
@@ -165,8 +181,23 @@ Analyze the match thoroughly and return the score, analysis, missing keywords, s
                     type: "string",
                     description: "Overall 2-3 sentence summary of the match quality",
                   },
+                  missing_keywords: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Keywords/skills from the job description missing from the resume (max 10)",
+                  },
+                  strengths: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Candidate strengths that match this job (max 5)",
+                  },
+                  resume_suggestions: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Specific actionable suggestions to improve the resume for this job (max 5)",
+                  },
                 },
-                required: ["relevance_score", "french_level_required", "skills_match", "french_match", "summary"],
+                required: ["relevance_score", "skills_score", "french_score", "role_score", "overall_score", "french_level_required", "skills_match", "french_match", "summary", "missing_keywords", "strengths", "resume_suggestions"],
                 additionalProperties: false,
               },
             },
