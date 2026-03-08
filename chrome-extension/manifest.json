@@ -3,7 +3,7 @@
   "name": "JobHunt France",
   "version": "1.0.0",
   "description": "Save jobs from LinkedIn & Welcome to the Jungle to your JobHunt France dashboard",
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage", "activeTab", "alarms"],
   "host_permissions": [
     "https://www.linkedin.com/*",
     "https://www.welcometothejungle.com/*"
