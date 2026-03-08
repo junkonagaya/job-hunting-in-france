@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Tables } from "@/integrations/supabase/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import {
-  Briefcase, Send, MessageSquare, Trophy, TrendingUp, Clock,
+  Briefcase, Send, MessageSquare, Trophy, TrendingUp,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,134 +27,123 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
-    const fetchJobs = async () => {
-      const { data } = await supabase
-        .from("saved_jobs")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("date_saved", { ascending: false });
-      setJobs(data || []);
-      setLoading(false);
-    };
-    fetchJobs();
+    supabase
+      .from("saved_jobs")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("date_saved", { ascending: false })
+      .then(({ data }) => {
+        setJobs(data || []);
+        setLoading(false);
+      });
   }, [user]);
 
   const total = jobs.length;
   const applied = jobs.filter((j) => j.status !== "saved").length;
   const interviews = jobs.filter((j) => j.status === "interview").length;
   const offers = jobs.filter((j) => j.status === "offer").length;
-  const conversionApplied = total > 0 ? Math.round((applied / total) * 100) : 0;
-  const conversionInterview = applied > 0 ? Math.round((interviews / applied) * 100) : 0;
-  const conversionOffer = interviews > 0 ? Math.round((offers / interviews) * 100) : 0;
+  const convApplied = total > 0 ? Math.round((applied / total) * 100) : 0;
+  const convInterview = applied > 0 ? Math.round((interviews / applied) * 100) : 0;
+  const convOffer = interviews > 0 ? Math.round((offers / interviews) * 100) : 0;
 
   const stats = [
-    { label: "Saved Jobs", value: total, icon: Briefcase, color: "text-primary" },
-    { label: "Applied", value: applied, icon: Send, color: "text-accent" },
-    { label: "Interviews", value: interviews, icon: MessageSquare, color: "text-warning" },
-    { label: "Offers", value: offers, icon: Trophy, color: "text-success" },
+    { label: "Saved", value: total, icon: Briefcase },
+    { label: "Applied", value: applied, icon: Send },
+    { label: "Interviews", value: interviews, icon: MessageSquare },
+    { label: "Offers", value: offers, icon: Trophy },
   ];
 
   const recentJobs = jobs.slice(0, 5);
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-10">
+      {/* Header */}
+      <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Track your job search progress</p>
+          <h1 className="text-2xl font-display font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-1">Your job search at a glance</p>
         </div>
         <Link to="/add-job">
-          <Button className="gap-2">
-            <Briefcase className="w-4 h-4" />
-            Add Job
-          </Button>
+          <Button size="sm" className="rounded-xl text-xs h-9 px-4">Add Job</Button>
         </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(({ label, value, icon: Icon, color }, i) => (
+      {/* Stats row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {stats.map(({ label, value, icon: Icon }, i) => (
           <motion.div
             key={label}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
+            transition={{ delay: i * 0.06 }}
+            className="rounded-2xl border border-border bg-card p-5"
           >
-            <Card>
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <Icon className={`w-5 h-5 ${color}`} />
-                  <span className="text-xs text-muted-foreground">{label}</span>
-                </div>
-                <p className="text-3xl font-display font-bold">{loading ? "–" : value}</p>
-              </CardContent>
-            </Card>
+            <div className="flex items-center gap-2 mb-3">
+              <Icon className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">{label}</span>
+            </div>
+            <p className="text-2xl font-display font-semibold">{loading ? "–" : value}</p>
           </motion.div>
         ))}
       </div>
 
-      {/* Conversion rates */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          { label: "Application Rate", value: conversionApplied, desc: "saved → applied" },
-          { label: "Interview Rate", value: conversionInterview, desc: "applied → interview" },
-          { label: "Offer Rate", value: conversionOffer, desc: "interview → offer" },
-        ].map(({ label, value, desc }, i) => (
-          <motion.div
-            key={label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 + i * 0.1 }}
-          >
-            <Card>
-              <CardContent className="p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">{label}</span>
-                </div>
-                <p className="text-2xl font-display font-bold">{loading ? "–" : `${value}%`}</p>
-                <p className="text-xs text-muted-foreground mt-1">{desc}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+      {/* Conversion */}
+      <div>
+        <h2 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-1.5">
+          <TrendingUp className="w-3.5 h-3.5" />
+          Conversion Rates
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[
+            { label: "Application rate", value: convApplied, sub: "saved → applied" },
+            { label: "Interview rate", value: convInterview, sub: "applied → interview" },
+            { label: "Offer rate", value: convOffer, sub: "interview → offer" },
+          ].map(({ label, value, sub }) => (
+            <div key={label} className="rounded-2xl border border-border bg-card p-5">
+              <p className="text-xs text-muted-foreground mb-1">{label}</p>
+              <p className="text-xl font-display font-semibold">{loading ? "–" : `${value}%`}</p>
+              <p className="text-[11px] text-muted-foreground/60 mt-1">{sub}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Recent jobs */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg font-display">Recent Jobs</CardTitle>
-          <Link to="/jobs">
-            <Button variant="ghost" size="sm">View all</Button>
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-medium text-muted-foreground">Recent Jobs</h2>
+          <Link to="/jobs" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            View all →
           </Link>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
           {loading ? (
-            <p className="text-muted-foreground text-sm py-8 text-center">Loading...</p>
+            <p className="text-muted-foreground text-sm py-12 text-center">Loading...</p>
           ) : recentJobs.length === 0 ? (
-            <div className="text-center py-12">
-              <Briefcase className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-muted-foreground text-sm">No jobs saved yet</p>
+            <div className="text-center py-16 px-4">
+              <p className="text-muted-foreground text-sm mb-3">No jobs saved yet</p>
               <Link to="/add-job">
-                <Button variant="outline" size="sm" className="mt-3">Add your first job</Button>
+                <Button variant="outline" size="sm" className="rounded-xl text-xs">
+                  Add your first job
+                </Button>
               </Link>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="divide-y divide-border">
               {recentJobs.map((job) => (
                 <div
                   key={job.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                  className="flex items-center justify-between px-5 py-3.5 hover:bg-muted/30 transition-colors"
                 >
                   <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">{job.job_title}</p>
+                    <p className="text-sm font-medium truncate">{job.job_title}</p>
                     <p className="text-xs text-muted-foreground truncate">{job.company_name}</p>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-3 flex-shrink-0 ml-4">
                     {job.relevance_score !== null && (
                       <span className="text-xs font-medium text-primary">{job.relevance_score}%</span>
                     )}
-                    <Badge variant="secondary" className={statusColors[job.status]}>
+                    <Badge variant="secondary" className={`${statusColors[job.status]} text-[11px] font-normal rounded-lg px-2 py-0.5`}>
                       {job.status}
                     </Badge>
                   </div>
@@ -163,8 +151,8 @@ export default function Dashboard() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
