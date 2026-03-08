@@ -318,6 +318,15 @@ export default function JobList() {
                     <SelectItem value="rejected">Rejected</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* Delete */}
+                <button
+                  onClick={() => deleteJob(job.id)}
+                  className="text-muted-foreground/40 hover:text-destructive transition-colors flex-shrink-0"
+                  title="Remove job"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             ))}
           </div>
