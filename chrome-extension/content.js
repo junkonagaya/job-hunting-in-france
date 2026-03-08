@@ -25,7 +25,13 @@ function isLinkedIn() {
 }
 
 function isWTTJ() {
-  return window.location.hostname.includes("welcometothejungle.com");
+  return window.location.hostname.includes("welcometothejungle");
+}
+
+function isJobPage() {
+  if (isLinkedIn()) return window.location.pathname.includes("/jobs");
+  if (isWTTJ()) return window.location.pathname.includes("/jobs/");
+  return false;
 }
 
 function extractLinkedInJob() {
@@ -117,11 +123,62 @@ function extractLinkedInJob() {
 }
 
 function extractWTTJJob() {
-  const title = document.querySelector("h2[data-testid='job-section-title'], h1")?.textContent?.trim() || "";
-  const company = document.querySelector("[data-testid='job-header-organization-name']")?.textContent?.trim()
-    || document.querySelector("a[href*='/companies/']")?.textContent?.trim() || "";
-  const location = document.querySelector("[data-testid='job-header-location']")?.textContent?.trim() || "";
-  const description = document.querySelector("[data-testid='job-section-description']")?.textContent?.trim() || "";
+  // Title - try multiple selectors
+  const titleSelectors = [
+    "h2[data-testid='job-section-title']",
+    "[data-testid='job-header-title']",
+    "h1[class*='Title']",
+    "h2[class*='Title']",
+    "h1",
+  ];
+  let title = "";
+  for (const sel of titleSelectors) {
+    const el = document.querySelector(sel);
+    if (el?.textContent?.trim()) { title = el.textContent.trim(); break; }
+  }
+
+  // Company
+  const companySelectors = [
+    "[data-testid='job-header-organization-name']",
+    "a[href*='/companies/'] span",
+    "a[href*='/companies/']",
+    "[class*='organization'] a",
+  ];
+  let company = "";
+  for (const sel of companySelectors) {
+    const el = document.querySelector(sel);
+    if (el?.textContent?.trim()) { company = el.textContent.trim(); break; }
+  }
+
+  // Location
+  const locationSelectors = [
+    "[data-testid='job-header-location']",
+    "[class*='location']",
+    "i[name='location'] + span",
+  ];
+  let location = "";
+  for (const sel of locationSelectors) {
+    const el = document.querySelector(sel);
+    if (el?.textContent?.trim()) { location = el.textContent.trim(); break; }
+  }
+
+  // Description
+  const descSelectors = [
+    "[data-testid='job-section-description']",
+    "[class*='description'] [class*='content']",
+    "section[class*='description']",
+    "article",
+  ];
+  let description = "";
+  for (const sel of descSelectors) {
+    const el = document.querySelector(sel);
+    if (el?.textContent?.trim() && el.textContent.trim().length > 50) {
+      description = el.textContent.trim();
+      break;
+    }
+  }
+
+  console.log("[JobHunt] WTTJ Extracted:", { title, company, location, descLength: description.length });
 
   return {
     job_title: title,
@@ -179,10 +236,15 @@ function tryInjectButton() {
     return;
   }
 
+  if (!isJobPage()) {
+    console.log("[JobHunt] Not a job page, skipping injection");
+    return;
+  }
+
   console.log("[JobHunt] Trying to inject button...");
 
   let attempts = 0;
-  const maxAttempts = 30; // 30 seconds
+  const maxAttempts = 30;
 
   const checkInterval = setInterval(() => {
     attempts++;
@@ -191,8 +253,23 @@ function tryInjectButton() {
     if (isLinkedIn()) {
       anchor = findLinkedInAnchor();
     } else if (isWTTJ()) {
-      anchor = document.querySelector("[data-testid='job-header']")?.parentElement
-        || document.querySelector("header")?.parentElement;
+      // Try multiple anchor points for WTTJ
+      const wttjSelectors = [
+        "[data-testid='job-header']",
+        "[class*='JobHeader']",
+        "[class*='job-header']",
+        "header",
+        "h1",
+        "h2",
+      ];
+      for (const sel of wttjSelectors) {
+        const el = document.querySelector(sel);
+        if (el) {
+          anchor = el.parentElement || el;
+          console.log("[JobHunt] WTTJ anchor found:", sel);
+          break;
+        }
+      }
     }
 
     if (anchor) {
@@ -201,7 +278,6 @@ function tryInjectButton() {
     } else if (attempts >= maxAttempts) {
       clearInterval(checkInterval);
       console.log("[JobHunt] Gave up finding anchor after", maxAttempts, "attempts");
-      // Inject as floating button instead
       injectFloatingButton();
     }
   }, 1000);
