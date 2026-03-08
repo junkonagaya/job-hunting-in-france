@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { ExternalLink, Search, PlusCircle } from "lucide-react";
+import { ExternalLink, Search, PlusCircle, Sparkles, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 type SavedJob = Tables<"saved_jobs">;
@@ -42,6 +42,7 @@ export default function JobList() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState<"relevance" | "date_saved" | "date_posted">("date_saved");
+  const [scoringJobId, setScoringJobId] = useState<string | null>(null);
 
   const fetchJobs = async () => {
     if (!user) return;
@@ -64,6 +65,46 @@ export default function JobList() {
     else fetchJobs();
   };
 
+  const scoreJob = async (jobId: string) => {
+    setScoringJobId(jobId);
+    try {
+      const { data, error } = await supabase.functions.invoke("score-job", {
+        body: { job_id: jobId },
+      });
+
+      if (error) {
+        toast({ title: "Scoring failed", description: error.message, variant: "destructive" });
+        return;
+      }
+
+      if (data?.error) {
+        toast({ title: "Scoring failed", description: data.error, variant: "destructive" });
+        return;
+      }
+
+      toast({
+        title: `Relevance: ${data.relevance_score}%`,
+        description: data.summary,
+      });
+      fetchJobs();
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setScoringJobId(null);
+    }
+  };
+
+  const scoreAllUnscored = async () => {
+    const unscored = jobs.filter(j => j.relevance_score === null && j.job_description);
+    if (unscored.length === 0) {
+      toast({ title: "Nothing to score", description: "All jobs with descriptions are already scored." });
+      return;
+    }
+    for (const job of unscored) {
+      await scoreJob(job.id);
+    }
+  };
+
   const filtered = jobs.filter((j) => {
     const matchesSearch =
       j.job_title.toLowerCase().includes(search.toLowerCase()) ||
@@ -72,6 +113,8 @@ export default function JobList() {
     return matchesSearch && matchesStatus;
   });
 
+  const unscoredCount = jobs.filter(j => j.relevance_score === null && j.job_description).length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-end justify-between">
@@ -79,12 +122,26 @@ export default function JobList() {
           <h1 className="text-2xl font-semibold tracking-tight">My Jobs</h1>
           <p className="text-muted-foreground text-sm mt-1">{jobs.length} positions tracked</p>
         </div>
-        <Link to="/add-job">
-          <Button size="sm" className="rounded-lg text-xs h-9 px-4 gap-1.5">
-            <PlusCircle className="w-3.5 h-3.5" />
-            Add Job
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          {unscoredCount > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-lg text-xs h-9 px-4 gap-1.5"
+              onClick={scoreAllUnscored}
+              disabled={scoringJobId !== null}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Score {unscoredCount} jobs
+            </Button>
+          )}
+          <Link to="/add-job">
+            <Button size="sm" className="rounded-lg text-xs h-9 px-4 gap-1.5">
+              <PlusCircle className="w-3.5 h-3.5" />
+              Add Job
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}
@@ -165,6 +222,19 @@ export default function JobList() {
                     </div>
                     <span className="text-[11px] font-medium text-primary w-8 text-right">{job.relevance_score}%</span>
                   </div>
+                ) : job.job_description ? (
+                  <button
+                    onClick={() => scoreJob(job.id)}
+                    disabled={scoringJobId !== null}
+                    className="hidden sm:flex items-center gap-1 text-[11px] text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                  >
+                    {scoringJobId === job.id ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3 h-3" />
+                    )}
+                    Score
+                  </button>
                 ) : (
                   <span className="hidden sm:block text-[11px] text-muted-foreground/40 w-20 text-right">–</span>
                 )}
