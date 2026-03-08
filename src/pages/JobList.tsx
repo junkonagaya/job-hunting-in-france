@@ -341,7 +341,7 @@ export default function JobList() {
 
       {/* Score Detail Dialog */}
       <Dialog open={!!selectedJob} onOpenChange={(open) => { if (!open) { setSelectedJob(null); setDialogAnalysis(null); } }}>
-        <DialogContent className="max-w-lg rounded-xl border-border">
+        <DialogContent className="max-w-lg rounded-xl border-border max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg">
               Score Breakdown
