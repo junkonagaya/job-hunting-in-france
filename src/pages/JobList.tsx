@@ -12,12 +12,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { ExternalLink, Search, PlusCircle, Sparkles, Loader2 } from "lucide-react";
+import { ExternalLink, Search, PlusCircle, Sparkles, Loader2, CheckCircle, AlertTriangle, Lightbulb, Tags } from "lucide-react";
 import { format } from "date-fns";
 
 type SavedJob = Tables<"saved_jobs">;
+
+interface ScoreAnalysis {
+  skills_score: number;
+  french_score: number;
+  role_score: number;
+  overall_score: number;
+  skills_match: string;
+  french_match: string;
+  summary: string;
+  missing_keywords: string[];
+  strengths: string[];
+  resume_suggestions: string[];
+}
 
 const statusColors: Record<string, string> = {
   saved: "bg-secondary text-secondary-foreground",
@@ -34,6 +53,34 @@ const frenchLabels: Record<string, string> = {
   native: "Native",
 };
 
+function parseAnalysisFromNotes(notes: string | null): ScoreAnalysis | null {
+  if (!notes) return null;
+  const marker = "--- AI Analysis ---\n";
+  const idx = notes.lastIndexOf(marker);
+  if (idx === -1) return null;
+  const jsonStr = notes.slice(idx + marker.length).trim();
+  try {
+    return JSON.parse(jsonStr);
+  } catch {
+    return null;
+  }
+}
+
+function ScoreBar({ label, score, max, color }: { label: string; score: number; max: number; color: string }) {
+  const pct = Math.round((score / max) * 100);
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-medium">{score}/{max}</span>
+      </div>
+      <div className="h-2 rounded-full bg-secondary overflow-hidden">
+        <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 export default function JobList() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -43,6 +90,8 @@ export default function JobList() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState<"relevance" | "date_saved" | "date_posted">("date_saved");
   const [scoringJobId, setScoringJobId] = useState<string | null>(null);
+  const [selectedJob, setSelectedJob] = useState<SavedJob | null>(null);
+  const [dialogAnalysis, setDialogAnalysis] = useState<ScoreAnalysis | null>(null);
 
   const fetchJobs = async () => {
     if (!user) return;
@@ -103,6 +152,12 @@ export default function JobList() {
     for (const job of unscored) {
       await scoreJob(job.id);
     }
+  };
+
+  const openScoreDetail = (job: SavedJob) => {
+    const analysis = parseAnalysisFromNotes(job.notes);
+    setSelectedJob(job);
+    setDialogAnalysis(analysis);
   };
 
   const filtered = jobs.filter((j) => {
@@ -214,14 +269,18 @@ export default function JobList() {
                   🇫🇷 {frenchLabels[job.french_level_required || "unknown"]}
                 </Badge>
 
-                {/* Score */}
+                {/* Score — clickable */}
                 {job.relevance_score !== null ? (
-                  <div className="hidden sm:flex items-center gap-1.5 w-20">
+                  <button
+                    onClick={() => openScoreDetail(job)}
+                    className="hidden sm:flex items-center gap-1.5 w-20 group cursor-pointer"
+                    title="View score breakdown"
+                  >
                     <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
                       <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${job.relevance_score}%` }} />
                     </div>
-                    <span className="text-[11px] font-medium text-primary w-8 text-right">{job.relevance_score}%</span>
-                  </div>
+                    <span className="text-[11px] font-medium text-primary w-8 text-right group-hover:underline">{job.relevance_score}%</span>
+                  </button>
                 ) : job.job_description ? (
                   <button
                     onClick={() => scoreJob(job.id)}
@@ -264,6 +323,104 @@ export default function JobList() {
           </div>
         )}
       </div>
+
+      {/* Score Detail Dialog */}
+      <Dialog open={!!selectedJob} onOpenChange={(open) => { if (!open) { setSelectedJob(null); setDialogAnalysis(null); } }}>
+        <DialogContent className="max-w-lg rounded-xl border-border">
+          <DialogHeader>
+            <DialogTitle className="text-lg">
+              Score Breakdown
+            </DialogTitle>
+            {selectedJob && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {selectedJob.job_title} at {selectedJob.company_name}
+              </p>
+            )}
+          </DialogHeader>
+
+          {selectedJob && (
+            <div className="space-y-6 mt-2">
+              {/* Overall Score */}
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full border-4 border-primary flex items-center justify-center">
+                  <span className="text-xl font-bold text-primary">{selectedJob.relevance_score}%</span>
+                </div>
+                <p className="text-sm text-muted-foreground flex-1">
+                  {dialogAnalysis?.summary || "No detailed analysis available. Re-score this job to get a full breakdown."}
+                </p>
+              </div>
+
+              {dialogAnalysis && (
+                <>
+                  {/* Score Bars */}
+                  <div className="space-y-3 rounded-lg border border-border p-4">
+                    <ScoreBar label="Skills & Experience" score={dialogAnalysis.skills_score} max={40} color="bg-primary" />
+                    <ScoreBar label="French Language" score={dialogAnalysis.french_score} max={20} color="bg-amber-500" />
+                    <ScoreBar label="Role Relevance" score={dialogAnalysis.role_score} max={20} color="bg-emerald-500" />
+                    <ScoreBar label="Overall Fit" score={dialogAnalysis.overall_score} max={20} color="bg-violet-500" />
+                  </div>
+
+                  {/* Strengths */}
+                  {dialogAnalysis.strengths?.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5 text-sm font-medium">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        Your Strengths
+                      </div>
+                      <ul className="space-y-1">
+                        {dialogAnalysis.strengths.map((s, i) => (
+                          <li key={i} className="text-sm text-muted-foreground pl-6">• {s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Missing Keywords */}
+                  {dialogAnalysis.missing_keywords?.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5 text-sm font-medium">
+                        <Tags className="w-4 h-4 text-amber-500" />
+                        Missing Keywords to Add
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pl-6">
+                        {dialogAnalysis.missing_keywords.map((kw, i) => (
+                          <Badge key={i} variant="outline" className="text-xs rounded-md border-amber-300 text-amber-700 bg-amber-50">
+                            {kw}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Resume Suggestions */}
+                  {dialogAnalysis.resume_suggestions?.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5 text-sm font-medium">
+                        <Lightbulb className="w-4 h-4 text-primary" />
+                        Resume Improvement Tips
+                      </div>
+                      <ul className="space-y-1.5">
+                        {dialogAnalysis.resume_suggestions.map((s, i) => (
+                          <li key={i} className="text-sm text-muted-foreground pl-6">
+                            <span className="text-foreground font-medium">{i + 1}.</span> {s}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {!dialogAnalysis && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 rounded-lg p-3">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>This job was scored before the detailed breakdown was available. Re-score it to see the full analysis.</span>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

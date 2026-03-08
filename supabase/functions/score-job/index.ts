@@ -98,7 +98,12 @@ Scoring criteria:
 - Role relevance (0-20 points): How well the candidate's target role and career trajectory match
 - Overall fit (0-20 points): Location preferences, seniority level, industry alignment
 
-The total score should be 0-100.`;
+The total score should be 0-100.
+
+Also provide:
+- A list of keywords/skills from the job description that are MISSING from the candidate's resume
+- Specific, actionable suggestions to improve the resume for this particular job
+- Strengths the candidate already has that match the job`;
 
     const userPrompt = `## Candidate Profile
 - Name: ${profile.full_name || "Not provided"}
@@ -116,7 +121,7 @@ ${profile.cv_text || "Not provided"}
 - Description:
 ${job.job_description}
 
-Analyze the match and return the score and analysis.`;
+Analyze the match thoroughly and return the score, analysis, missing keywords, strengths, and resume improvement suggestions.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -143,6 +148,22 @@ Analyze the match and return the score and analysis.`;
                     type: "integer",
                     description: "Overall relevance score from 0-100",
                   },
+                  skills_score: {
+                    type: "integer",
+                    description: "Skills & experience match score from 0-40",
+                  },
+                  french_score: {
+                    type: "integer",
+                    description: "French language fit score from 0-20",
+                  },
+                  role_score: {
+                    type: "integer",
+                    description: "Role relevance score from 0-20",
+                  },
+                  overall_score: {
+                    type: "integer",
+                    description: "Overall fit score from 0-20",
+                  },
                   french_level_required: {
                     type: "string",
                     enum: ["none", "A1", "A2", "B1", "B2", "C1", "C2", "native", "unknown"],
@@ -160,8 +181,23 @@ Analyze the match and return the score and analysis.`;
                     type: "string",
                     description: "Overall 2-3 sentence summary of the match quality",
                   },
+                  missing_keywords: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Keywords/skills from the job description missing from the resume (max 10)",
+                  },
+                  strengths: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Candidate strengths that match this job (max 5)",
+                  },
+                  resume_suggestions: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Specific actionable suggestions to improve the resume for this job (max 5)",
+                  },
                 },
-                required: ["relevance_score", "french_level_required", "skills_match", "french_match", "summary"],
+                required: ["relevance_score", "skills_score", "french_score", "role_score", "overall_score", "french_level_required", "skills_match", "french_match", "summary", "missing_keywords", "strengths", "resume_suggestions"],
                 additionalProperties: false,
               },
             },
@@ -206,15 +242,31 @@ Analyze the match and return the score and analysis.`;
     const result = JSON.parse(toolCall.function.arguments);
     const score = Math.max(0, Math.min(100, result.relevance_score));
 
-    // Update the job with score and detected french level
+    // Store analysis as JSON in notes for retrieval
+    const analysisJson = JSON.stringify({
+      skills_score: result.skills_score,
+      french_score: result.french_score,
+      role_score: result.role_score,
+      overall_score: result.overall_score,
+      skills_match: result.skills_match,
+      french_match: result.french_match,
+      summary: result.summary,
+      missing_keywords: result.missing_keywords,
+      strengths: result.strengths,
+      resume_suggestions: result.resume_suggestions,
+    });
+
+    const userNotes = job.notes?.replace(/\n?--- AI Analysis ---\n[\s\S]*$/, "").trim() || "";
+    const fullNotes = userNotes
+      ? `${userNotes}\n\n--- AI Analysis ---\n${analysisJson}`
+      : `--- AI Analysis ---\n${analysisJson}`;
+
     const { error: updateError } = await supabase
       .from("saved_jobs")
       .update({
         relevance_score: score,
         french_level_required: result.french_level_required,
-        notes: job.notes
-          ? `${job.notes}\n\n--- AI Analysis ---\n${result.summary}\n\nSkills: ${result.skills_match}\nFrench: ${result.french_match}`
-          : `--- AI Analysis ---\n${result.summary}\n\nSkills: ${result.skills_match}\nFrench: ${result.french_match}`,
+        notes: fullNotes,
       })
       .eq("id", job_id);
 
@@ -229,10 +281,17 @@ Analyze the match and return the score and analysis.`;
     return new Response(JSON.stringify({
       success: true,
       relevance_score: score,
+      skills_score: result.skills_score,
+      french_score: result.french_score,
+      role_score: result.role_score,
+      overall_score: result.overall_score,
       french_level_required: result.french_level_required,
       skills_match: result.skills_match,
       french_match: result.french_match,
       summary: result.summary,
+      missing_keywords: result.missing_keywords,
+      strengths: result.strengths,
+      resume_suggestions: result.resume_suggestions,
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
