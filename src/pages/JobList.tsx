@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { ExternalLink, Search, PlusCircle, Sparkles, Loader2, CheckCircle, AlertTriangle, Lightbulb, Tags } from "lucide-react";
+import { ExternalLink, Search, PlusCircle, Sparkles, Loader2, CheckCircle, AlertTriangle, Lightbulb, Tags, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 type SavedJob = Tables<"saved_jobs">;
