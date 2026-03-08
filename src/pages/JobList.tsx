@@ -114,6 +114,12 @@ export default function JobList() {
     else fetchJobs();
   };
 
+  const deleteJob = async (jobId: string) => {
+    const { error } = await supabase.from("saved_jobs").delete().eq("id", jobId);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: "Job removed" }); fetchJobs(); }
+  };
+
   const scoreJob = async (jobId: string) => {
     setScoringJobId(jobId);
     try {
