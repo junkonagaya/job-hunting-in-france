@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { ExternalLink, Search, PlusCircle, Sparkles, Loader2, CheckCircle, AlertTriangle, Lightbulb, Tags } from "lucide-react";
+import { ExternalLink, Search, PlusCircle, Sparkles, Loader2, CheckCircle, AlertTriangle, Lightbulb, Tags, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 type SavedJob = Tables<"saved_jobs">;
@@ -112,6 +112,12 @@ export default function JobList() {
     const { error } = await supabase.from("saved_jobs").update(updates).eq("id", jobId);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else fetchJobs();
+  };
+
+  const deleteJob = async (jobId: string) => {
+    const { error } = await supabase.from("saved_jobs").delete().eq("id", jobId);
+    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+    else { toast({ title: "Job removed" }); fetchJobs(); }
   };
 
   const scoreJob = async (jobId: string) => {
@@ -318,6 +324,15 @@ export default function JobList() {
                     <SelectItem value="rejected">Rejected</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* Delete */}
+                <button
+                  onClick={() => deleteJob(job.id)}
+                  className="text-muted-foreground/40 hover:text-destructive transition-colors flex-shrink-0"
+                  title="Remove job"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             ))}
           </div>
