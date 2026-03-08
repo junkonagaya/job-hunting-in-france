@@ -21,10 +21,10 @@ type SavedJob = Tables<"saved_jobs">;
 
 const statusColors: Record<string, string> = {
   saved: "bg-secondary text-secondary-foreground",
-  applied: "bg-primary/10 text-primary",
-  interview: "bg-warning/10 text-warning",
-  offer: "bg-success/10 text-success",
-  rejected: "bg-destructive/10 text-destructive",
+  applied: "bg-primary/15 text-primary",
+  interview: "bg-warning/15 text-warning",
+  offer: "bg-success/15 text-success",
+  rejected: "bg-destructive/15 text-destructive",
 };
 
 const frenchLabels: Record<string, string> = {
@@ -76,11 +76,11 @@ export default function JobList() {
     <div className="space-y-6">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-display font-semibold tracking-tight">My Jobs</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">My Jobs</h1>
           <p className="text-muted-foreground text-sm mt-1">{jobs.length} positions tracked</p>
         </div>
         <Link to="/add-job">
-          <Button size="sm" className="rounded-xl text-xs h-9 px-4 gap-1.5">
+          <Button size="sm" className="rounded-lg text-xs h-9 px-4 gap-1.5">
             <PlusCircle className="w-3.5 h-3.5" />
             Add Job
           </Button>
@@ -95,11 +95,11 @@ export default function JobList() {
             placeholder="Search jobs..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 rounded-xl bg-card border-border/60 text-sm"
+            className="pl-9 h-9 rounded-lg bg-input border-border text-sm"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[140px] h-9 rounded-xl text-xs bg-card border-border/60">
+          <SelectTrigger className="w-[140px] h-9 rounded-lg text-xs bg-input border-border">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -112,7 +112,7 @@ export default function JobList() {
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-          <SelectTrigger className="w-[140px] h-9 rounded-xl text-xs bg-card border-border/60">
+          <SelectTrigger className="w-[140px] h-9 rounded-lg text-xs bg-input border-border">
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
@@ -124,7 +124,7 @@ export default function JobList() {
       </div>
 
       {/* Jobs list */}
-      <div className="rounded-2xl border border-border bg-card overflow-hidden">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
         {loading ? (
           <p className="text-center text-muted-foreground text-sm py-16">Loading...</p>
         ) : filtered.length === 0 ? (
@@ -132,7 +132,7 @@ export default function JobList() {
         ) : (
           <div className="divide-y divide-border">
             {filtered.map((job) => (
-              <div key={job.id} className="flex items-center gap-4 px-5 py-4 hover:bg-muted/20 transition-colors">
+              <div key={job.id} className="flex items-center gap-4 px-6 py-4 hover:bg-accent/50 transition-colors">
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -153,14 +153,14 @@ export default function JobList() {
                 </div>
 
                 {/* French level */}
-                <Badge variant="outline" className="text-[10px] rounded-lg px-2 py-0.5 border-border/60 text-muted-foreground hidden sm:inline-flex">
+                <Badge variant="outline" className="text-[10px] rounded-md px-2 py-0.5 border-border text-muted-foreground hidden sm:inline-flex">
                   🇫🇷 {frenchLabels[job.french_level_required || "unknown"]}
                 </Badge>
 
                 {/* Score */}
                 {job.relevance_score !== null ? (
                   <div className="hidden sm:flex items-center gap-1.5 w-20">
-                    <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
+                    <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
                       <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${job.relevance_score}%` }} />
                     </div>
                     <span className="text-[11px] font-medium text-primary w-8 text-right">{job.relevance_score}%</span>
@@ -176,8 +176,8 @@ export default function JobList() {
 
                 {/* Status */}
                 <Select value={job.status} onValueChange={(v) => updateStatus(job.id, v)}>
-                  <SelectTrigger className="h-7 w-[100px] text-[11px] rounded-lg border-0 bg-transparent p-0 justify-end gap-1">
-                    <Badge variant="secondary" className={`${statusColors[job.status]} text-[11px] font-normal rounded-lg px-2 py-0.5`}>
+                  <SelectTrigger className="h-7 w-[100px] text-[11px] rounded-md border-0 bg-transparent p-0 justify-end gap-1">
+                    <Badge variant="secondary" className={`${statusColors[job.status]} text-[11px] font-normal rounded-md px-2 py-0.5`}>
                       {job.status}
                     </Badge>
                   </SelectTrigger>

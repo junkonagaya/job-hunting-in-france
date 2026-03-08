@@ -14,10 +14,10 @@ type SavedJob = Tables<"saved_jobs">;
 
 const statusColors: Record<string, string> = {
   saved: "bg-secondary text-secondary-foreground",
-  applied: "bg-primary/10 text-primary",
-  interview: "bg-warning/10 text-warning",
-  offer: "bg-success/10 text-success",
-  rejected: "bg-destructive/10 text-destructive",
+  applied: "bg-primary/15 text-primary",
+  interview: "bg-warning/15 text-warning",
+  offer: "bg-success/15 text-success",
+  rejected: "bg-destructive/15 text-destructive",
 };
 
 export default function Dashboard() {
@@ -60,11 +60,11 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-display font-semibold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground text-sm mt-1">Your job search at a glance</p>
         </div>
         <Link to="/add-job">
-          <Button size="sm" className="rounded-xl text-xs h-9 px-4">Add Job</Button>
+          <Button size="sm" className="rounded-lg text-xs h-9 px-4">Add Job</Button>
         </Link>
       </div>
 
@@ -76,13 +76,13 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
-            className="rounded-2xl border border-border bg-card p-5"
+            className="rounded-xl border border-border bg-card p-6"
           >
             <div className="flex items-center gap-2 mb-3">
               <Icon className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{label}</span>
+              <span className="text-xs font-medium text-muted-foreground">{label}</span>
             </div>
-            <p className="text-2xl font-display font-semibold">{loading ? "–" : value}</p>
+            <p className="text-2xl font-semibold">{loading ? "–" : value}</p>
           </motion.div>
         ))}
       </div>
@@ -99,9 +99,9 @@ export default function Dashboard() {
             { label: "Interview rate", value: convInterview, sub: "applied → interview" },
             { label: "Offer rate", value: convOffer, sub: "interview → offer" },
           ].map(({ label, value, sub }) => (
-            <div key={label} className="rounded-2xl border border-border bg-card p-5">
-              <p className="text-xs text-muted-foreground mb-1">{label}</p>
-              <p className="text-xl font-display font-semibold">{loading ? "–" : `${value}%`}</p>
+            <div key={label} className="rounded-xl border border-border bg-card p-6">
+              <p className="text-xs font-medium text-muted-foreground mb-1">{label}</p>
+              <p className="text-xl font-semibold">{loading ? "–" : `${value}%`}</p>
               <p className="text-[11px] text-muted-foreground/60 mt-1">{sub}</p>
             </div>
           ))}
@@ -116,14 +116,14 @@ export default function Dashboard() {
             View all →
           </Link>
         </div>
-        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
           {loading ? (
             <p className="text-muted-foreground text-sm py-12 text-center">Loading...</p>
           ) : recentJobs.length === 0 ? (
             <div className="text-center py-16 px-4">
               <p className="text-muted-foreground text-sm mb-3">No jobs saved yet</p>
               <Link to="/add-job">
-                <Button variant="outline" size="sm" className="rounded-xl text-xs">
+                <Button variant="outline" size="sm" className="rounded-lg text-xs">
                   Add your first job
                 </Button>
               </Link>
@@ -133,7 +133,7 @@ export default function Dashboard() {
               {recentJobs.map((job) => (
                 <div
                   key={job.id}
-                  className="flex items-center justify-between px-5 py-3.5 hover:bg-muted/30 transition-colors"
+                  className="flex items-center justify-between px-6 py-3.5 hover:bg-accent/50 transition-colors"
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{job.job_title}</p>
@@ -143,7 +143,7 @@ export default function Dashboard() {
                     {job.relevance_score !== null && (
                       <span className="text-xs font-medium text-primary">{job.relevance_score}%</span>
                     )}
-                    <Badge variant="secondary" className={`${statusColors[job.status]} text-[11px] font-normal rounded-lg px-2 py-0.5`}>
+                    <Badge variant="secondary" className={`${statusColors[job.status]} text-[11px] font-normal rounded-md px-2 py-0.5`}>
                       {job.status}
                     </Badge>
                   </div>

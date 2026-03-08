@@ -53,28 +53,28 @@ export default function ProfilePage() {
   return (
     <div className="max-w-xl space-y-8">
       <div>
-        <h1 className="text-2xl font-display font-semibold tracking-tight">Profile</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
         <p className="text-muted-foreground text-sm mt-1">Your experience for AI matching</p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
+      <div className="rounded-xl border border-border bg-card p-6 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Full Name</Label>
+            <Label className="text-xs font-medium text-muted-foreground">Full Name</Label>
             <Input value={profile.full_name || ""} onChange={(e) => update("full_name", e.target.value)}
-              className="h-10 rounded-xl bg-background border-border/60 text-sm" />
+              className="h-10 rounded-lg bg-input border-border text-sm" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Target Job Title</Label>
+            <Label className="text-xs font-medium text-muted-foreground">Target Job Title</Label>
             <Input value={profile.target_job_title || ""} onChange={(e) => update("target_job_title", e.target.value)}
               placeholder="e.g. Software Engineer"
-              className="h-10 rounded-xl bg-background border-border/60 text-sm" />
+              className="h-10 rounded-lg bg-input border-border text-sm" />
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Your French Level</Label>
+          <Label className="text-xs font-medium text-muted-foreground">Your French Level</Label>
           <Select value={profile.french_level || "none"} onValueChange={(v) => update("french_level", v)}>
-            <SelectTrigger className="h-10 rounded-xl bg-background border-border/60 text-sm">
+            <SelectTrigger className="h-10 rounded-lg bg-input border-border text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -91,27 +91,27 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
+      <div className="rounded-xl border border-border bg-card p-6 space-y-5">
         <div>
           <h2 className="text-sm font-medium mb-1">Skills & Experience</h2>
           <p className="text-xs text-muted-foreground">Used by AI to calculate relevance scores</p>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Skills Summary</Label>
+          <Label className="text-xs font-medium text-muted-foreground">Skills Summary</Label>
           <Textarea value={profile.skills_summary || ""} onChange={(e) => update("skills_summary", e.target.value)}
             placeholder="React, TypeScript, Node.js, 5 years, fintech..." rows={4}
-            className="rounded-xl bg-background border-border/60 text-sm resize-none" />
+            className="rounded-lg bg-input border-border text-sm resize-none" />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">CV / Resume Text</Label>
+          <Label className="text-xs font-medium text-muted-foreground">CV / Resume Text</Label>
           <Textarea value={profile.cv_text || ""} onChange={(e) => update("cv_text", e.target.value)}
             placeholder="Paste your CV text here for better AI matching..." rows={8}
-            className="rounded-xl bg-background border-border/60 text-sm resize-none" />
+            className="rounded-lg bg-input border-border text-sm resize-none" />
         </div>
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving} className="rounded-xl h-10 px-5 text-sm gap-2">
+        <Button onClick={handleSave} disabled={saving} className="rounded-lg h-10 px-5 text-sm gap-2">
           {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
           Save Profile
         </Button>

@@ -48,10 +48,10 @@ const Auth = () => {
       >
         {/* Logo */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 mb-5">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/15 mb-5">
             <span className="text-xl">🇫🇷</span>
           </div>
-          <h1 className="text-2xl font-display font-semibold tracking-tight">JobHunt France</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">JobHunt France</h1>
           <p className="text-muted-foreground text-sm mt-2">
             {isLogin ? "Welcome back" : "Create your account"}
           </p>
@@ -65,7 +65,7 @@ const Auth = () => {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required={!isLogin}
-              className="h-11 bg-card border-border/60 rounded-xl px-4 text-sm"
+              className="h-11 bg-input border-border rounded-lg px-4 text-sm"
             />
           )}
           <Input
@@ -74,7 +74,7 @@ const Auth = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="h-11 bg-card border-border/60 rounded-xl px-4 text-sm"
+            className="h-11 bg-input border-border rounded-lg px-4 text-sm"
           />
           <Input
             type="password"
@@ -83,11 +83,11 @@ const Auth = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="h-11 bg-card border-border/60 rounded-xl px-4 text-sm"
+            className="h-11 bg-input border-border rounded-lg px-4 text-sm"
           />
           <Button
             type="submit"
-            className="w-full h-11 rounded-xl gap-2 text-sm font-medium mt-2"
+            className="w-full h-11 rounded-lg gap-2 text-sm font-medium mt-2"
             disabled={loading}
           >
             {loading ? "Loading..." : isLogin ? "Continue" : "Create account"}

@@ -16,13 +16,13 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
       <aside className="hidden md:flex w-60 flex-col bg-sidebar border-r border-sidebar-border">
         <div className="p-5 pb-6">
           <Link to="/" className="flex items-center gap-2.5">
             <span className="text-lg">🇫🇷</span>
-            <span className="text-[15px] font-display font-semibold text-sidebar-foreground tracking-tight">
+            <span className="text-[15px] font-semibold text-sidebar-foreground tracking-tight">
               JobHunt
             </span>
           </Link>
@@ -39,7 +39,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] transition-colors",
                   active
                     ? "bg-sidebar-accent text-sidebar-foreground font-medium"
-                    : "text-sidebar-foreground/50 hover:text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+                    : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
                 )}
               >
                 <Icon className="w-[15px] h-[15px]" />
@@ -54,11 +54,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <div className="w-7 h-7 rounded-full bg-sidebar-accent flex items-center justify-center text-[11px] font-medium text-sidebar-foreground/80">
               {user?.email?.charAt(0).toUpperCase()}
             </div>
-            <span className="text-[11px] text-sidebar-foreground/50 truncate flex-1">{user?.email}</span>
+            <span className="text-[11px] text-muted-foreground truncate flex-1">{user?.email}</span>
           </div>
           <button
             onClick={signOut}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-sidebar-foreground/40 hover:text-sidebar-foreground/70 hover:bg-sidebar-accent/50 transition-colors w-full"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors w-full"
           >
             <LogOut className="w-[15px] h-[15px]" />
             Sign out
