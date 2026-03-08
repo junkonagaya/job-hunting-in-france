@@ -161,7 +161,7 @@ export default function ProfilePage() {
               </span>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground/60">Supports .txt files. For PDF/DOCX, paste the text below.</p>
+          <p className="text-[11px] text-muted-foreground/60">Supports PDF, Word (.doc/.docx), and text files. Max 5MB.</p>
         </div>
 
         <div className="space-y-1.5">
