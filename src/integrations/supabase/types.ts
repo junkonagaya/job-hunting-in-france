@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      application_goals: {
+        Row: {
+          created_at: string
+          id: string
+          monthly_target: number
+          updated_at: string
+          user_id: string
+          weekly_target: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          monthly_target?: number
+          updated_at?: string
+          user_id: string
+          weekly_target?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          monthly_target?: number
+          updated_at?: string
+          user_id?: string
+          weekly_target?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
