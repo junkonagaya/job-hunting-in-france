@@ -236,10 +236,15 @@ function tryInjectButton() {
     return;
   }
 
+  if (!isJobPage()) {
+    console.log("[JobHunt] Not a job page, skipping injection");
+    return;
+  }
+
   console.log("[JobHunt] Trying to inject button...");
 
   let attempts = 0;
-  const maxAttempts = 30; // 30 seconds
+  const maxAttempts = 30;
 
   const checkInterval = setInterval(() => {
     attempts++;
@@ -248,8 +253,23 @@ function tryInjectButton() {
     if (isLinkedIn()) {
       anchor = findLinkedInAnchor();
     } else if (isWTTJ()) {
-      anchor = document.querySelector("[data-testid='job-header']")?.parentElement
-        || document.querySelector("header")?.parentElement;
+      // Try multiple anchor points for WTTJ
+      const wttjSelectors = [
+        "[data-testid='job-header']",
+        "[class*='JobHeader']",
+        "[class*='job-header']",
+        "header",
+        "h1",
+        "h2",
+      ];
+      for (const sel of wttjSelectors) {
+        const el = document.querySelector(sel);
+        if (el) {
+          anchor = el.parentElement || el;
+          console.log("[JobHunt] WTTJ anchor found:", sel);
+          break;
+        }
+      }
     }
 
     if (anchor) {
@@ -258,7 +278,6 @@ function tryInjectButton() {
     } else if (attempts >= maxAttempts) {
       clearInterval(checkInterval);
       console.log("[JobHunt] Gave up finding anchor after", maxAttempts, "attempts");
-      // Inject as floating button instead
       injectFloatingButton();
     }
   }, 1000);
