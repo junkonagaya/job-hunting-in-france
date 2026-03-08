@@ -59,11 +59,30 @@ export default function ProfilePage() {
 
     setParsing(true);
     try {
-      const text = await file.text();
-      update("cv_text", text);
-      toast({ title: "Resume loaded", description: "Text extracted from file. Review and save." });
-    } catch {
-      toast({ title: "Error reading file", description: "Please paste your resume text manually.", variant: "destructive" });
+      const name = file.name.toLowerCase();
+      if (name.endsWith(".txt") || name.endsWith(".md") || name.endsWith(".text")) {
+        const text = await file.text();
+        update("cv_text", text);
+        toast({ title: "Resume loaded", description: "Text extracted from file. Review and save." });
+      } else {
+        // PDF/DOC/DOCX — send to edge function for AI parsing
+        const formData = new FormData();
+        formData.append("file", file);
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-resume`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: formData,
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || "Failed to parse document");
+        update("cv_text", result.text);
+        toast({ title: "Resume parsed", description: "Text extracted via AI. Review and save." });
+      }
+    } catch (err: any) {
+      toast({ title: "Error reading file", description: err.message || "Please paste your resume text manually.", variant: "destructive" });
     } finally {
       setParsing(false);
     }
