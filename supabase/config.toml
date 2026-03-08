@@ -1,1 +1,4 @@
 project_id = "dzvilnveshfhxcmmpipo"
+
+[functions.save-job]
+verify_jwt = false
