@@ -25,7 +25,13 @@ function isLinkedIn() {
 }
 
 function isWTTJ() {
-  return window.location.hostname.includes("welcometothejungle.com");
+  return window.location.hostname.includes("welcometothejungle");
+}
+
+function isJobPage() {
+  if (isLinkedIn()) return window.location.pathname.includes("/jobs");
+  if (isWTTJ()) return window.location.pathname.includes("/jobs/");
+  return false;
 }
 
 function extractLinkedInJob() {
