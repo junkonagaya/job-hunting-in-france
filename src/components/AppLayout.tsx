@@ -23,7 +23,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <Link to="/" className="flex items-center gap-2.5">
             <span className="text-lg">🇫🇷</span>
             <span className="text-[15px] font-semibold text-sidebar-foreground tracking-tight font-['Lora']">
-              get a dream job smart
+              get your dream job smarter
             </span>
           </Link>
         </div>
