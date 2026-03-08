@@ -6,6 +6,7 @@
   "permissions": ["storage", "activeTab", "alarms"],
   "host_permissions": [
     "https://www.linkedin.com/*",
+    "https://linkedin.com/*",
     "https://www.welcometothejungle.com/*"
   ],
   "action": {
@@ -16,10 +17,14 @@
     {
       "matches": [
         "https://www.linkedin.com/jobs/*",
+        "https://www.linkedin.com/jobs/view/*",
+        "https://www.linkedin.com/jobs/search/*",
+        "https://www.linkedin.com/jobs/collections/*",
         "https://www.welcometothejungle.com/*/jobs/*"
       ],
       "js": ["content.js"],
-      "css": ["content.css"]
+      "css": ["content.css"],
+      "run_at": "document_idle"
     }
   ],
   "background": {
