@@ -148,7 +148,7 @@ export default function ProfilePage() {
               <span className="text-muted-foreground">{parsing ? "Reading..." : "Choose file"}</span>
               <input
                 type="file"
-                accept=".txt,.md,.text"
+                accept=".txt,.md,.text,.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={handleFileUpload}
                 className="hidden"
                 disabled={parsing}
