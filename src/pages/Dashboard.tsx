@@ -3,14 +3,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Tables } from "@/integrations/supabase/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import {
-  Briefcase, Send, MessageSquare, Trophy, TrendingUp,
+  Briefcase, Send, MessageSquare, Trophy, TrendingUp, Target, Edit2, Check, X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import {
+  startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO,
+} from "date-fns";
 
 type SavedJob = Tables<"saved_jobs">;
+
+interface Goals {
+  weekly_target: number;
+  monthly_target: number;
+}
 
 const statusColors: Record<string, string> = {
   saved: "bg-secondary text-secondary-foreground",
@@ -20,23 +30,92 @@ const statusColors: Record<string, string> = {
   rejected: "bg-destructive/15 text-destructive",
 };
 
+function ProgressRing({ value, max, size = 80, strokeWidth = 6 }: { value: number; max: number; size?: number; strokeWidth?: number }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const pct = max > 0 ? Math.min(value / max, 1) : 0;
+  const offset = circumference - pct * circumference;
+  const color = pct >= 1 ? "hsl(var(--success))" : "hsl(var(--primary))";
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none"
+          stroke="hsl(var(--border))" strokeWidth={strokeWidth} />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none"
+          stroke={color} strokeWidth={strokeWidth}
+          strokeDasharray={circumference} strokeDashoffset={offset}
+          strokeLinecap="round" className="transition-all duration-700" />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-lg font-semibold leading-none">{value}</span>
+        <span className="text-[10px] text-muted-foreground">/ {max}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [jobs, setJobs] = useState<SavedJob[]>([]);
   const [loading, setLoading] = useState(true);
+  const [goals, setGoals] = useState<Goals>({ weekly_target: 10, monthly_target: 40 });
+  const [editingGoals, setEditingGoals] = useState(false);
+  const [tempGoals, setTempGoals] = useState<Goals>({ weekly_target: 10, monthly_target: 40 });
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("saved_jobs")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("date_saved", { ascending: false })
-      .then(({ data }) => {
-        setJobs(data || []);
-        setLoading(false);
-      });
+
+    Promise.all([
+      supabase.from("saved_jobs").select("*").eq("user_id", user.id)
+        .order("date_saved", { ascending: false }),
+      supabase.from("application_goals").select("*").eq("user_id", user.id).single(),
+    ]).then(([jobsRes, goalsRes]) => {
+      setJobs(jobsRes.data || []);
+      if (goalsRes.data) {
+        const g = { weekly_target: goalsRes.data.weekly_target, monthly_target: goalsRes.data.monthly_target };
+        setGoals(g);
+        setTempGoals(g);
+      }
+      setLoading(false);
+    });
   }, [user]);
+
+  const saveGoals = async () => {
+    if (!user) return;
+    const { error } = await supabase.from("application_goals").upsert({
+      user_id: user.id,
+      weekly_target: tempGoals.weekly_target,
+      monthly_target: tempGoals.monthly_target,
+    }, { onConflict: "user_id" });
+
+    if (error) {
+      toast({ title: "Error saving goals", description: error.message, variant: "destructive" });
+    } else {
+      setGoals(tempGoals);
+      setEditingGoals(false);
+      toast({ title: "Goals updated" });
+    }
+  };
+
+  const now = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+  const monthStart = startOfMonth(now);
+  const monthEnd = endOfMonth(now);
+
+  const appliedJobs = jobs.filter(j => j.date_applied);
+
+  const weeklyApplied = appliedJobs.filter(j => {
+    const d = parseISO(j.date_applied!);
+    return isWithinInterval(d, { start: weekStart, end: weekEnd });
+  }).length;
+
+  const monthlyApplied = appliedJobs.filter(j => {
+    const d = parseISO(j.date_applied!);
+    return isWithinInterval(d, { start: monthStart, end: monthEnd });
+  }).length;
 
   const total = jobs.length;
   const applied = jobs.filter((j) => j.status !== "saved").length;
@@ -55,6 +134,9 @@ export default function Dashboard() {
 
   const recentJobs = jobs.slice(0, 5);
 
+  const weeklyPct = goals.weekly_target > 0 ? Math.round((weeklyApplied / goals.weekly_target) * 100) : 0;
+  const monthlyPct = goals.monthly_target > 0 ? Math.round((monthlyApplied / goals.monthly_target) * 100) : 0;
+
   return (
     <div className="space-y-10">
       {/* Header */}
@@ -66,6 +148,106 @@ export default function Dashboard() {
         <Link to="/add-job">
           <Button size="sm" className="rounded-lg text-xs h-9 px-4">Add Job</Button>
         </Link>
+      </div>
+
+      {/* Application Goals */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+            <Target className="w-3.5 h-3.5" />
+            Application Goals
+          </h2>
+          {!editingGoals ? (
+            <button onClick={() => { setTempGoals(goals); setEditingGoals(true); }}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+              <Edit2 className="w-3 h-3" /> Edit targets
+            </button>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <button onClick={saveGoals}
+                className="text-xs text-success hover:text-success/80 transition-colors flex items-center gap-1">
+                <Check className="w-3 h-3" /> Save
+              </button>
+              <button onClick={() => setEditingGoals(false)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                <X className="w-3 h-3" /> Cancel
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Weekly */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl border border-border bg-card p-6"
+          >
+            <div className="flex items-center gap-5">
+              <ProgressRing value={weeklyApplied} max={goals.weekly_target} />
+              <div className="flex-1">
+                <p className="text-sm font-medium">This Week</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {weeklyApplied >= goals.weekly_target
+                    ? "🎉 Weekly target reached!"
+                    : `${goals.weekly_target - weeklyApplied} more to hit your target`}
+                </p>
+                {editingGoals && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-[11px] text-muted-foreground">Target:</span>
+                    <Input type="number" min={1} max={100}
+                      value={tempGoals.weekly_target}
+                      onChange={(e) => setTempGoals(p => ({ ...p, weekly_target: parseInt(e.target.value) || 1 }))}
+                      className="h-7 w-16 rounded-md bg-input border-border text-xs text-center" />
+                  </div>
+                )}
+                <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${Math.min(weeklyPct, 100)}%`,
+                      backgroundColor: weeklyPct >= 100 ? "hsl(var(--success))" : "hsl(var(--primary))"
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Monthly */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.06 }}
+            className="rounded-xl border border-border bg-card p-6"
+          >
+            <div className="flex items-center gap-5">
+              <ProgressRing value={monthlyApplied} max={goals.monthly_target} />
+              <div className="flex-1">
+                <p className="text-sm font-medium">This Month</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {monthlyApplied >= goals.monthly_target
+                    ? "🎉 Monthly target reached!"
+                    : `${goals.monthly_target - monthlyApplied} more to hit your target`}
+                </p>
+                {editingGoals && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-[11px] text-muted-foreground">Target:</span>
+                    <Input type="number" min={1} max={500}
+                      value={tempGoals.monthly_target}
+                      onChange={(e) => setTempGoals(p => ({ ...p, monthly_target: parseInt(e.target.value) || 1 }))}
+                      className="h-7 w-16 rounded-md bg-input border-border text-xs text-center" />
+                  </div>
+                )}
+                <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${Math.min(monthlyPct, 100)}%`,
+                      backgroundColor: monthlyPct >= 100 ? "hsl(var(--success))" : "hsl(var(--primary))"
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
       {/* Stats row */}

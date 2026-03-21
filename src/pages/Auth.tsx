@@ -48,10 +48,7 @@ const Auth = () => {
       >
         {/* Logo */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/15 mb-5">
-            <span className="text-xl">🇫🇷</span>
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight">JobHunt France</h1>
+          <h1 className="text-2xl font-semibold tracking-tight font-['Lora']">get your dream job smarter</h1>
           <p className="text-muted-foreground text-sm mt-2">
             {isLogin ? "Welcome back" : "Create your account"}
           </p>

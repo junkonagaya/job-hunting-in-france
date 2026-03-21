@@ -24,7 +24,7 @@
         "https://www.linkedin.com/jobs/view/*",
         "https://www.linkedin.com/jobs/search/*",
         "https://www.linkedin.com/jobs/collections/*",
-        "https://www.welcometothejungle.com/*/jobs/*"
+        "https://www.welcometothejungle.com/*"
       ],
       "js": ["content.js"],
       "css": ["content.css"],

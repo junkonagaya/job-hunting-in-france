@@ -47,6 +47,44 @@
     }
     .error { color: #d32f2f; font-size: 12px; margin-bottom: 8px; }
     .hint { font-size: 11px; color: #8a8078; margin-top: 12px; text-align: center; }
+
+    /* Onboarding styles */
+    .onboarding { text-align: center; padding: 8px 0; }
+    .onboarding-emoji { font-size: 48px; margin-bottom: 16px; }
+    .onboarding h2 { font-size: 18px; font-weight: 700; color: #2a2017; margin-bottom: 8px; }
+    .onboarding p { font-size: 13px; color: #8a8078; line-height: 1.5; margin-bottom: 16px; }
+    .onboarding-steps {
+      display: flex; gap: 12px; margin: 16px 0 20px;
+    }
+    .onboarding-step {
+      flex: 1; text-align: center; padding: 12px 6px;
+      background: #fff; border-radius: 12px;
+      border: 1px solid #e8e2da;
+    }
+    .onboarding-step .step-icon { font-size: 28px; margin-bottom: 6px; }
+    .onboarding-step .step-label { font-size: 10px; font-weight: 600; color: #2a2017; }
+    .onboarding-step .step-arrow {
+      position: absolute; right: -10px; top: 50%;
+      color: #c47a3a; font-size: 14px;
+    }
+    .dots {
+      display: flex; justify-content: center; gap: 6px; margin: 16px 0 12px;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #e8e2da; transition: background 0.2s;
+    }
+    .dot.active { background: #c47a3a; }
+    .skip-link {
+      background: none; border: none; color: #8a8078;
+      font-size: 11px; cursor: pointer; margin-top: 4px;
+      text-decoration: underline; width: auto; padding: 4px;
+    }
+    .skip-link:hover { color: #c47a3a; opacity: 1; }
+    .onboarding a {
+      color: #c47a3a; text-decoration: none; font-weight: 500;
+    }
+    .onboarding a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
