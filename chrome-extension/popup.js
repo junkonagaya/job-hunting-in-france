@@ -1,5 +1,7 @@
-const SUPABASE_URL = "https://dzvilnveshfhxcmmpipo.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6dmlsbnZlc2hmaHhjbW1waXBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5Nzc4NDcsImV4cCI6MjA4ODU1Mzg0N30.Pj7k9ZYMK-jSDl2QBhco6nIpqMPYvIw0UqHde7px1lY";
+// Use configuration from config.js
+const SUPABASE_URL = CURRENT_CONFIG.supabaseUrl;
+const SUPABASE_ANON_KEY = CURRENT_CONFIG.supabaseAnonKey;
+const DASHBOARD_URL = CURRENT_CONFIG.dashboardUrl;
 
 const content = document.getElementById("content");
 
@@ -31,10 +33,16 @@ function showLoggedIn(session) {
       <p class="hint" style="margin-bottom:12px">
         Visit a LinkedIn or WTTJ job page to see the "Save to JobHunt" button
       </p>
+      <button class="btn-primary" id="dashboardBtn">View Dashboard</button>
       <button class="btn-outline" id="logoutBtn">Sign out</button>
     </div>
   `;
+  document.getElementById("dashboardBtn").addEventListener("click", openDashboard);
   document.getElementById("logoutBtn").addEventListener("click", handleLogout);
+}
+
+function openDashboard() {
+  chrome.tabs.create({ url: DASHBOARD_URL });
 }
 
 async function handleLogin() {
@@ -63,10 +71,15 @@ async function handleLogin() {
     };
 
     await chrome.storage.local.set({ session });
-    // Notify content scripts
+    // Notify content scripts (ignore errors if content script isn't loaded)
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
-        chrome.tabs.sendMessage(tabs[0].id, { type: "AUTH_UPDATED", session });
+        chrome.tabs.sendMessage(tabs[0].id, { type: "AUTH_UPDATED", session }, () => {
+          // Ignore errors - content script may not be loaded
+          if (chrome.runtime.lastError) {
+            console.log('Content script not loaded, which is fine');
+          }
+        });
       }
     });
     showLoggedIn(session);
@@ -80,7 +93,12 @@ async function handleLogout() {
   await chrome.storage.local.remove("session");
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]?.id) {
-      chrome.tabs.sendMessage(tabs[0].id, { type: "AUTH_UPDATED", session: null });
+      chrome.tabs.sendMessage(tabs[0].id, { type: "AUTH_UPDATED", session: null }, () => {
+        // Ignore errors - content script may not be loaded
+        if (chrome.runtime.lastError) {
+          console.log('Content script not loaded, which is fine');
+        }
+      });
     }
   });
   showLogin();
