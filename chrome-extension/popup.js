@@ -158,9 +158,7 @@ async function handleLogin() {
       if (tabs[0]?.id) {
         chrome.tabs.sendMessage(tabs[0].id, { type: "AUTH_UPDATED", session }, () => {
           // Ignore errors - content script may not be loaded
-          if (chrome.runtime.lastError) {
-            console.log('Content script not loaded, which is fine');
-          }
+          chrome.runtime.lastError;
         });
       }
     });
@@ -177,9 +175,7 @@ async function handleLogout() {
     if (tabs[0]?.id) {
       chrome.tabs.sendMessage(tabs[0].id, { type: "AUTH_UPDATED", session: null }, () => {
         // Ignore errors - content script may not be loaded
-        if (chrome.runtime.lastError) {
-          console.log('Content script not loaded, which is fine');
-        }
+        chrome.runtime.lastError;
       });
     }
   });

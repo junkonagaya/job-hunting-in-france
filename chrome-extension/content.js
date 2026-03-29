@@ -8,7 +8,6 @@ let buttonInjected = false;
 // Get session on load
 chrome.storage.local.get("session", ({ session }) => {
   currentSession = session || null;
-  console.log("[JobHunt] Extension loaded, session:", currentSession ? "found" : "none");
   tryInjectButton();
 });
 
@@ -110,8 +109,6 @@ function extractLinkedInJob() {
     }
   }
 
-  console.log("[JobHunt] Extracted:", { title, company, loc, descLength: description.length });
-
   return {
     job_title: title,
     company_name: company,
@@ -178,8 +175,6 @@ function extractWTTJJob() {
     }
   }
 
-  console.log("[JobHunt] WTTJ Extracted:", { title, company, location, descLength: description.length });
-
   return {
     job_title: title,
     company_name: company,
@@ -207,7 +202,6 @@ function findLinkedInAnchor() {
   for (const sel of selectors) {
     const el = document.querySelector(sel);
     if (el) {
-      console.log("[JobHunt] Found anchor:", sel);
       return el;
     }
   }
@@ -217,12 +211,10 @@ function findLinkedInAnchor() {
   if (applyBtn) {
     const parent = applyBtn.closest("div");
     if (parent) {
-      console.log("[JobHunt] Found anchor via Apply button");
       return parent;
     }
   }
 
-  console.log("[JobHunt] No anchor found");
   return null;
 }
 
@@ -237,11 +229,8 @@ function tryInjectButton() {
   }
 
   if (!isJobPage()) {
-    console.log("[JobHunt] Not a job page, skipping injection");
     return;
   }
-
-  console.log("[JobHunt] Trying to inject button...");
 
   let attempts = 0;
   const maxAttempts = 30;
@@ -266,7 +255,6 @@ function tryInjectButton() {
         const el = document.querySelector(sel);
         if (el) {
           anchor = el.parentElement || el;
-          console.log("[JobHunt] WTTJ anchor found:", sel);
           break;
         }
       }
@@ -277,7 +265,6 @@ function tryInjectButton() {
       injectButton(anchor);
     } else if (attempts >= maxAttempts) {
       clearInterval(checkInterval);
-      console.log("[JobHunt] Gave up finding anchor after", maxAttempts, "attempts");
       injectFloatingButton();
     }
   }, 1000);
@@ -292,7 +279,6 @@ function injectButton(anchor) {
 
   anchor.insertAdjacentElement("afterend", wrapper);
   buttonInjected = true;
-  console.log("[JobHunt] Button injected!");
 }
 
 function injectFloatingButton() {
@@ -305,7 +291,6 @@ function injectFloatingButton() {
 
   document.body.appendChild(wrapper);
   buttonInjected = true;
-  console.log("[JobHunt] Floating button injected!");
 }
 
 function createButton() {

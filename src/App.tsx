@@ -10,6 +10,8 @@ import Dashboard from "@/pages/Dashboard";
 import JobList from "@/pages/JobList";
 import AddJob from "@/pages/AddJob";
 import ProfilePage from "@/pages/Profile";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,8 @@ const AppRoutes = () => (
     <Route path="/jobs" element={<ProtectedRoute><JobList /></ProtectedRoute>} />
     <Route path="/add-job" element={<ProtectedRoute><AddJob /></ProtectedRoute>} />
     <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+    <Route path="/privacy" element={<Privacy />} />
+    <Route path="/terms" element={<Terms />} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
