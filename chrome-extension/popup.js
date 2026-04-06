@@ -109,16 +109,19 @@ function showLogin() {
 
 function showLoggedIn(session) {
   const userEmail = session.user?.email || "";
-  const shortEmail = userEmail.length > 25 ? userEmail.substring(0, 22) + "..." : userEmail;
+  const shortEmail = userEmail.length > 20 ? userEmail.substring(0, 17) + "..." : userEmail;
 
   content.innerHTML = `
     <div class="logged-in">
-      <div class="status"><span class="status-dot"></span> Connected</div>
-      <p class="email">${userEmail}</p>
+      <div class="status"><span class="status-dot"></span> Connected as:</div>
+      <p class="email" style="font-weight:600; margin-bottom:8px">${userEmail}</p>
       <p class="hint" style="margin-bottom:12px">
         Visit a LinkedIn or WTTJ job page to see the "Save to JobHunt" button
       </p>
-      <button class="btn-primary" id="dashboardBtn">View Dashboard (${shortEmail})</button>
+      <button class="btn-primary" id="dashboardBtn">View Dashboard</button>
+      <p class="hint" style="margin-top:8px; font-size:10px; color:#8a8078">
+        💡 Make sure dashboard uses <strong>${shortEmail}</strong>
+      </p>
       <button class="btn-outline" id="logoutBtn">Sign out</button>
     </div>
   `;
@@ -127,21 +130,8 @@ function showLoggedIn(session) {
 }
 
 function openDashboard(session) {
-  // Pass auth token to dashboard via URL hash for auto-login
-  const accessToken = session?.access_token || "";
-  const refreshToken = session?.refresh_token || "";
-
-  if (accessToken && refreshToken) {
-    // Encode tokens in URL hash (more secure than query params)
-    const authData = btoa(JSON.stringify({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      user: session.user
-    }));
-    chrome.tabs.create({ url: `${DASHBOARD_URL}#auth=${authData}` });
-  } else {
-    chrome.tabs.create({ url: DASHBOARD_URL });
-  }
+  // Simply open dashboard - user ensures same account is signed in
+  chrome.tabs.create({ url: DASHBOARD_URL });
 }
 
 async function handleLogin() {

@@ -19,30 +19,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if extension passed auth token via URL hash
-    const checkExtensionAuth = async () => {
-      const hash = window.location.hash;
-      if (hash.startsWith('#auth=')) {
-        try {
-          const authData = hash.replace('#auth=', '');
-          const decoded = JSON.parse(atob(authData));
-
-          // Set the session from extension
-          await supabase.auth.setSession({
-            access_token: decoded.access_token,
-            refresh_token: decoded.refresh_token,
-          });
-
-          // Clear the hash from URL for security
-          window.history.replaceState(null, '', window.location.pathname);
-        } catch (e) {
-          console.error('Failed to parse extension auth:', e);
-        }
-      }
-    };
-
-    checkExtensionAuth();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
