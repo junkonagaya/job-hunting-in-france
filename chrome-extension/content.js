@@ -185,39 +185,6 @@ function extractWTTJJob() {
   };
 }
 
-function findLinkedInAnchor() {
-  // Try many possible anchor points on LinkedIn job pages
-  const selectors = [
-    ".job-details-jobs-unified-top-card__content--two-pane",
-    ".job-details-jobs-unified-top-card__container",
-    ".jobs-unified-top-card",
-    ".jobs-unified-top-card__content--two-pane",
-    ".job-details-jobs-unified-top-card__primary-description-container",
-    ".jobs-search__job-details--container",
-    ".jobs-details__main-content",
-    // Fallback: find the Apply button's parent
-    ".jobs-apply-button--top-card",
-  ];
-
-  for (const sel of selectors) {
-    const el = document.querySelector(sel);
-    if (el) {
-      return el;
-    }
-  }
-
-  // Ultimate fallback: find any element containing "Apply" button
-  const applyBtn = document.querySelector("button[aria-label*='Apply'], .jobs-apply-button");
-  if (applyBtn) {
-    const parent = applyBtn.closest("div");
-    if (parent) {
-      return parent;
-    }
-  }
-
-  return null;
-}
-
 function tryInjectButton() {
   if (buttonInjected) {
     const btn = document.getElementById("jobhunt-save-btn");
@@ -232,56 +199,15 @@ function tryInjectButton() {
     return;
   }
 
-  let attempts = 0;
-  const maxAttempts = 30;
-
-  const checkInterval = setInterval(() => {
-    attempts++;
-    let anchor = null;
-
-    if (isLinkedIn()) {
-      anchor = findLinkedInAnchor();
-    } else if (isWTTJ()) {
-      // Try multiple anchor points for WTTJ
-      const wttjSelectors = [
-        "[data-testid='job-header']",
-        "[class*='JobHeader']",
-        "[class*='job-header']",
-        "header",
-        "h1",
-        "h2",
-      ];
-      for (const sel of wttjSelectors) {
-        const el = document.querySelector(sel);
-        if (el) {
-          anchor = el.parentElement || el;
-          break;
-        }
-      }
-    }
-
-    if (anchor) {
-      clearInterval(checkInterval);
-      injectButton(anchor);
-    } else if (attempts >= maxAttempts) {
-      clearInterval(checkInterval);
-      injectFloatingButton();
-    }
-  }, 1000);
-}
-
-function injectButton(anchor) {
-  const wrapper = document.createElement("div");
-  wrapper.id = "jobhunt-wrapper";
-
-  const btn = createButton();
-  wrapper.appendChild(btn);
-
-  anchor.insertAdjacentElement("afterend", wrapper);
-  buttonInjected = true;
+  // IMMEDIATE: Always inject floating button first for guaranteed visibility
+  injectFloatingButton();
 }
 
 function injectFloatingButton() {
+  // Remove any existing button
+  const existing = document.getElementById("jobhunt-wrapper");
+  if (existing) existing.remove();
+
   const wrapper = document.createElement("div");
   wrapper.id = "jobhunt-wrapper";
   wrapper.style.cssText = "position:fixed; bottom:24px; right:24px; z-index:99999;";
@@ -307,7 +233,7 @@ async function handleSave() {
   const btn = document.getElementById("jobhunt-save-btn");
   if (!currentSession?.access_token) {
     btn.textContent = "⚠ Sign in first";
-    setTimeout(() => { btn.innerHTML = `Save to JobHunt 🇫🇷`; }, 2000);
+    setTimeout(() => { btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save to JobHunt 🇫🇷`; }, 2000);
     return;
   }
 
@@ -337,15 +263,14 @@ async function handleSave() {
     btn.innerHTML = `✓ Saved!`;
     btn.classList.add("jobhunt-saved");
     setTimeout(() => {
-      btn.innerHTML = `Save to JobHunt 🇫🇷`;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save to JobHunt 🇫🇷`;
       btn.classList.remove("jobhunt-saved");
       btn.disabled = false;
     }, 3000);
   } catch (err) {
-    console.error("[JobHunt] Save error:", err);
     btn.textContent = `✗ ${err.message}`;
     setTimeout(() => {
-      btn.innerHTML = `Save to JobHunt 🇫🇷`;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save to JobHunt 🇫🇷`;
       btn.disabled = false;
     }, 3000);
   }
@@ -359,6 +284,6 @@ new MutationObserver(() => {
     buttonInjected = false;
     const old = document.getElementById("jobhunt-wrapper");
     if (old) old.remove();
-    setTimeout(tryInjectButton, 1500);
+    setTimeout(tryInjectButton, 500);
   }
 }).observe(document.body, { subtree: true, childList: true });
